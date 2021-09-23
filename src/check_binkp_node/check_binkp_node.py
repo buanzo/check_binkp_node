@@ -100,7 +100,7 @@ def main():
                       help='critical SECONDS drift. Default=0:5')
     argp.add_argument('-v', '--verbose', action='count', default=0,
                       help='be more verbose')
-    argp.add_argument('-p', '--port', metavar='PORT', default=24554,
+    argp.add_argument('-p', '--port', metavar='PORT', default=24554, type=int,
                       help='Remote PORT for binkp service. Default is 24554.')
     argp.add_argument('domain')
     args = argp.parse_args()
