@@ -5,10 +5,11 @@ from datetime import datetime
 from pprint import pprint
 from construct import Int8ub, Struct, this, Bytes, GreedyRange
 import time
+import socket
 
 __version__ = '0.1'
 
-CONNECT_TIMEOUT = 10
+CONN_TIMEOUT = 10
 READ_TIMEOUT = 3
 
 # The v1.0 BINK Protocol spec:
@@ -24,7 +25,7 @@ binkp10format = Struct(
 def binkp_node_parse(host, port, connect_timeout=10, read_timeout=3):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.settimeout(connect_timeout)
-    s.connect(host, port)
+    s.connect((host, port))
     s.settimeout(read_timeout)
     time.sleep(1)
     realdata = bytearray()
@@ -100,7 +101,7 @@ def main():
     crange = '@{}'.format(args.critical)
     fmetric = '{value} days until domain expires'
     # FIX: add 'isvaliddomainname' test
-    check = nagiosplugin.Check(BinkpNodeCheck(args.domain, args.port),
+    check = nagiosplugin.Check(BinkpNodeCheck(args.domain, args.port, CONN_TIMEOUT, READ_TIMEOUT),
                                nagiosplugin.ScalarContext('daystoexpiration',
                                                           warning=wrange,
                                                           critical=crange,
