@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 import argparse
 import nagiosplugin
-from datetime import datetime
+from datetime import datetime, timezone
 from pprint import pprint
 from construct import Int8ub, Struct, this, Bytes, GreedyRange
 import time
 import socket
+import dateparser
 
 __version__ = '0.1'
 
@@ -48,14 +49,17 @@ def binkp_node_parse(host, port, connect_timeout=10, read_timeout=3):
     for item in x:
         # TODO: actually check using type most significant bit, etc.
         if item.string.decode('ascii')[0:4] == 'TIME':
-            node_time = item.string.decode('ascii')
+            node_time = item.string.decode('ascii').split('TIME ')[1]
             print("GOT TIME: {}".format(node_time))
+            binkpdate = dateparser.parse(node_time)
+            pprint(binkpdate)
             # TODO:
-            #            today = datetime.now()
-            #            delta = datetime.strptime(fecha, '%Y-%m-%d') - today
-            #            return(delta.days)
-            return(node_time)
-    # No TIME ?
+            today = datetime.now(binkpdate.tzinfo)
+            pprint(today)
+            delta = binkpdate - today
+            pprint(delta)
+            return(delta)
+    # FIX: No TIME ?
     return(None)
 
 
