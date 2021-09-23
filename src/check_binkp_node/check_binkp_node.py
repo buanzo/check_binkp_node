@@ -21,7 +21,7 @@ binkp10format = Struct(
     "string"/Bytes(this.length-1),
 )
 
-def binkp_node_parse(host, port=24554, connect_timeout=10, read_timeout=3):
+def binkp_node_parse(host, port, connect_timeout=10, read_timeout=3):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.settimeout(connect_timeout)
     s.connect(host, port)
@@ -76,32 +76,36 @@ class BinkpNodeCheck(nagiosplugin.Resource):
 
 
 class LoadSummary(nagiosplugin.Summary):
-    def __init__(self, domain):
+    def __init__(self, domain, port):
         self.domain = domain
+        self.port = port
     pass
 
 
 @nagiosplugin.guarded
 def main():
     argp = argparse.ArgumentParser(description=__doc__)
-    argp.add_argument('-w', '--warning', metavar='RANGE', default='15:30',
-                      help='warning expiration RANGE days. Default=15:30')
-    argp.add_argument('-c', '--critical', metavar='RANGE', default='0:15',
-                      help='critical expiration RANGE days. Default=0:15')
+    # FIX: find good values for warning/critical
+    argp.add_argument('-w', '--warning', metavar='RANGE', default='6:10',
+                      help='warning SECONDS drift. Default=6:10')
+    argp.add_argument('-c', '--critical', metavar='RANGE', default='0:5',
+                      help='critical SECONDS drift. Default=0:5')
     argp.add_argument('-v', '--verbose', action='count', default=0,
                       help='be more verbose')
+    argp.add_argument('-p', '--port', metavar='PORT', default=24554,
+                      help='Remote PORT for binkp service. Default is 24554.'
     argp.add_argument('domain')
     args = argp.parse_args()
     wrange = '@{}'.format(args.warning)
     crange = '@{}'.format(args.critical)
     fmetric = '{value} days until domain expires'
     # FIX: add 'isvaliddomainname' test
-    check = nagiosplugin.Check(DaysToExpiration(args.domain),
+    check = nagiosplugin.Check(BinkpNodeCheck(args.domain, args.port),
                                nagiosplugin.ScalarContext('daystoexpiration',
                                                           warning=wrange,
                                                           critical=crange,
                                                           fmt_metric=fmetric),
-                               LoadSummary(args.domain))
+                               LoadSummary(args.domain, args.port))
     check.main(verbose=args.verbose)
 
 
