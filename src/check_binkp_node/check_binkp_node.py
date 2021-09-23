@@ -48,17 +48,19 @@ def binkp_node_parse(host, port, connect_timeout=10, read_timeout=3):
     x = parser.parse(realdata)
     for item in x:
         # TODO: actually check using type most significant bit, etc.
-        if item.string.decode('ascii')[0:4] == 'TIME':
-            node_time = item.string.decode('ascii').split('TIME ')[1]
-            print("GOT TIME: {}".format(node_time))
+        d_item = item.string.decode('ascii')
+        if d_item[0:5] == 'TIME ':
+            node_time = d_item.split('TIME ')[1]
+            #print("GOT TIME: {}".format(node_time))
             binkpdate = dateparser.parse(node_time)
-            pprint(binkpdate)
+            print("BINKP DATE: {}".format(binkpdate))
             # TODO:
-            today = datetime.now(binkpdate.tzinfo)
-            pprint(today)
-            delta = binkpdate - today
-            pprint(delta)
-            return(delta)
+            today = datetime.now(binkpdate.tzinfo).replace(microsecond=0)
+            #pprint(today)
+            print("LOCAL DATE: {}".format(today))
+            delta = today - binkpdate
+            pprint(delta.seconds)
+            return(delta.seconds)
     # FIX: No TIME ?
     return(None)
 
