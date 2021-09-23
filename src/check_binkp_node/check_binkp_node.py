@@ -68,12 +68,13 @@ class BinkpNodeCheck(nagiosplugin.Resource):
 
     def probe(self):
         time_diff = binkp_node_parse(self.host, port=self.port, connect_timeout=self.conn_timeout, read_timeout=self.read_timeout)
-        if days_to_expiration is None:
-            return[nagiosplugin.Metric('daystoexpiration',-1,context='daystoexpiration')]
+        print(time_diff)
+        if time_diff is None:
+            return[nagiosplugin.Metric('binkpnodedrift',-1,context='default')]
         # FIX: use nagiosplugin.state.Unknown in LoadSummary?
-        return [nagiosplugin.Metric('daystoexpiration',
-                                    days_to_expiration,
-                                    context='daystoexpiration')]
+        return [nagiosplugin.Metric('binkpnodedrift',
+                                    time_diff,
+                                    context='default')]
 
 
 class LoadSummary(nagiosplugin.Summary):
