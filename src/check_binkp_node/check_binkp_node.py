@@ -24,6 +24,7 @@ binkp10format = Struct(
 )
 
 def binkp_node_parse(host, port, connect_timeout=10, read_timeout=3):
+    start_time = datetime.now().replace(microsecond=0)
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.settimeout(connect_timeout)
     s.connect((host, port))
@@ -43,7 +44,8 @@ def binkp_node_parse(host, port, connect_timeout=10, read_timeout=3):
             break
         realdata.extend(data)
     s.close()
-
+    stop_time = datetime.now().replace(microsecond=0)
+    req_duration = stop_time - start_time
     parser = GreedyRange(binkp10format)
     x = parser.parse(realdata)
     for item in x:
@@ -59,8 +61,9 @@ def binkp_node_parse(host, port, connect_timeout=10, read_timeout=3):
             #pprint(today)
             print("LOCAL DATE: {}".format(today))
             delta = today - binkpdate
+            print("DURATION: {}".format(req_duration.seconds))
             pprint(delta.seconds)
-            return(delta.seconds)
+            return(delta.seconds-req_duration.seconds)
     # FIX: No TIME ?
     return(None)
 
